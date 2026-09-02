@@ -13,7 +13,7 @@
     {
       "binding": "DB",
       "database_name": "moj-plan-db",
-      "database_id": "TU_WKLEJ_ID_BAZY_D1",
+      "database_id": "b361313f-dbee-446f-b415-4d7ec032ce6e",
       "migrations_dir": "drizzle"
     }
   ]
