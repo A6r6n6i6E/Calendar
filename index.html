@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#173f3a" />
+    <meta name="description" content="Mobilny kalendarz zajęć, korepetycji, zebrań i rad pedagogicznych." />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>Mój Plan</title>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#plan" aria-label="Mój Plan — strona główna">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M7 3v3M17 3v3M4 9h16M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"/><path d="m8 14 2 2 5-5"/></svg>
+          </span>
+          <span>
+            <strong>Mój Plan</strong>
+            <small>spokojny tydzień</small>
+          </span>
+        </a>
+        <button class="icon-button profile-button" id="jumpTodayButton" type="button" aria-label="Przejdź do dzisiaj">
+          <span id="todayBadge">DZIŚ</span>
+        </button>
+      </header>
+
+      <main>
+        <section class="view is-active" id="planView" data-view="plan" aria-labelledby="planTitle">
+          <div class="week-panel">
+            <div class="week-controls">
+              <button class="icon-button" id="previousWeek" type="button" aria-label="Poprzedni tydzień">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+              </button>
+              <div class="week-label">
+                <p id="weekCaption">Ten tydzień</p>
+                <h1 id="planTitle">31 sie – 6 wrz</h1>
+              </div>
+              <button class="icon-button" id="nextWeek" type="button" aria-label="Następny tydzień">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="content-section timetable-section">
+            <div class="section-heading timetable-heading">
+              <div>
+                <p class="eyebrow">PLAN TYGODNIOWY</p>
+                <h2>Plan zajęć</h2>
+              </div>
+              <div class="timetable-heading-actions">
+                <button class="fit-table-button" id="fitTableButton" type="button" aria-pressed="true">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg>
+                  <span id="fitTableLabel">Czytelniej</span>
+                </button>
+                <div class="week-summary" id="weekSummary" aria-live="polite"></div>
+              </div>
+            </div>
+            <p class="timetable-help">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 12h8M12 8v8"/><circle cx="12" cy="12" r="9"/></svg>
+              Dotknij dowolnej godziny, aby dodać wpis. Wysokość kafelka odpowiada długości wydarzenia.
+            </p>
+            <div class="timetable-scroll" id="timetableScroll" tabindex="0" aria-label="Tygodniowy plan zajęć">
+              <div class="timetable-grid" id="timetableGrid" role="grid" aria-label="Plan od poniedziałku do piątku"></div>
+            </div>
+
+            <section class="outside-events" id="outsideEventsSection" hidden aria-labelledby="outsideEventsTitle">
+              <div class="outside-events-heading">
+                <div>
+                  <p class="eyebrow">POZA SIATKĄ GODZIN</p>
+                  <h2 id="outsideEventsTitle">Pozostałe wydarzenia</h2>
+                </div>
+              </div>
+              <div class="outside-events-list" id="outsideEventsList"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="baseView" data-view="base" aria-labelledby="baseTitle" hidden>
+          <div class="page-heading">
+            <p class="eyebrow">POWTARZA SIĘ CO TYDZIEŃ</p>
+            <h1 id="baseTitle">Plan bazowy</h1>
+            <p>Stałe zajęcia pojawiają się automatycznie w każdym tygodniu. Możesz je edytować lub dodać kolejne.</p>
+          </div>
+          <div class="base-list" id="baseList"></div>
+          <button class="secondary-action" id="addBaseButton" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            Dodaj do planu bazowego
+          </button>
+        </section>
+
+        <section class="view" id="moreView" data-view="more" aria-labelledby="moreTitle" hidden>
+          <div class="page-heading">
+            <p class="eyebrow">USTAWIENIA I DANE</p>
+            <h1 id="moreTitle">Więcej</h1>
+            <p>Plan działa także bez internetu, a po połączeniu synchronizuje zmiany między telefonem i komputerem.</p>
+          </div>
+
+          <div class="settings-card sync-card" id="syncCard" data-status="syncing">
+            <span class="settings-icon settings-icon--green sync-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M7 18a4.6 4.6 0 0 1-.8-9.1A6 6 0 0 1 17.7 7a4 4 0 0 1-.7 8H9"/><path d="m9 14 3 3 3-3M12 10v7"/></svg>
+            </span>
+            <div class="sync-copy">
+              <h2><i class="sync-dot" aria-hidden="true"></i><span id="syncStatusText">Łączę urządzenia…</span></h2>
+              <p id="syncStatusDetail">Sprawdzam najnowszy plan</p>
+              <div class="sync-actions">
+                <button class="inline-action" id="syncNowButton" type="button">Synchronizuj teraz</button>
+                <button class="inline-action inline-action--quiet" id="syncCodeButton" type="button">Ustaw kod</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-card install-card">
+            <span class="settings-icon settings-icon--green" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 17v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2"/></svg>
+            </span>
+            <div>
+              <h2>Zainstaluj na telefonie</h2>
+              <p>Dodaj aplikację do ekranu głównego i korzystaj z niej także bez internetu.</p>
+              <button class="inline-action" id="installButton" type="button">Zainstaluj aplikację</button>
+            </div>
+          </div>
+
+          <div class="settings-group" aria-label="Kopia danych">
+            <button class="settings-row" id="exportButton" type="button">
+              <span class="settings-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>
+              </span>
+              <span><strong>Eksportuj kopię</strong><small>Zapisz plan w pliku JSON</small></span>
+              <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+            <button class="settings-row" id="importButton" type="button">
+              <span class="settings-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 17v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2"/></svg>
+              </span>
+              <span><strong>Wczytaj kopię</strong><small>Przywróć wcześniej zapisany plan</small></span>
+              <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+            <input id="importFile" type="file" accept="application/json,.json" hidden />
+          </div>
+
+          <div class="settings-card legend-card">
+            <h2>Kolory wpisów</h2>
+            <div class="legend" id="categoryLegend"></div>
+          </div>
+
+          <button class="danger-link" id="resetButton" type="button">Przywróć początkowy plan bazowy</button>
+          <p class="app-version">Mój Plan · wersja 2.1</p>
+        </section>
+      </main>
+
+      <button class="fab" id="addButton" type="button" aria-label="Dodaj wydarzenie">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+
+      <nav class="bottom-nav" aria-label="Główna nawigacja">
+        <button class="nav-item is-active" type="button" data-target="plan">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v3M17 3v3M4 9h16M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"/><path d="M8 13h3M8 17h5"/></svg>
+          <span>Tydzień</span>
+        </button>
+        <button class="nav-item" type="button" data-target="base">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          <span>Baza</span>
+        </button>
+        <button class="nav-item" type="button" data-target="more">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          <span>Więcej</span>
+        </button>
+      </nav>
+    </div>
+
+    <dialog class="sheet-dialog" id="eventDialog">
+      <form class="sheet" id="eventForm" method="dialog" novalidate>
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <div class="sheet-header">
+          <div>
+            <p class="eyebrow" id="formEyebrow">NOWY WPIS</p>
+            <h2 id="eventDialogTitle">Dodaj wydarzenie</h2>
+          </div>
+          <button class="icon-button" id="closeEventDialog" type="button" aria-label="Zamknij">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+          </button>
+        </div>
+
+        <input id="eventId" type="hidden" />
+        <fieldset class="form-field scope-field" id="scopeField">
+          <legend>Rodzaj wpisu</legend>
+          <div class="segmented-control">
+            <label><input type="radio" name="scope" value="single" checked /><span>Jednorazowy</span></label>
+            <label><input type="radio" name="scope" value="base" /><span>Co tydzień</span></label>
+          </div>
+        </fieldset>
+
+        <label class="form-field">
+          <span>Nazwa wydarzenia</span>
+          <input id="eventTitle" name="title" type="text" maxlength="80" placeholder="np. Korepetycje – Ania" required />
+          <small class="field-error" id="titleError"></small>
+        </label>
+
+        <label class="form-field">
+          <span>Kategoria</span>
+          <select id="eventCategory" name="category"></select>
+        </label>
+
+        <label class="form-field" id="dateField">
+          <span>Data</span>
+          <input id="eventDate" name="date" type="date" required />
+        </label>
+
+        <label class="form-field" id="weekdayField" hidden>
+          <span>Dzień tygodnia</span>
+          <select id="eventWeekday" name="weekday">
+            <option value="1">Poniedziałek</option>
+            <option value="2">Wtorek</option>
+            <option value="3">Środa</option>
+            <option value="4">Czwartek</option>
+            <option value="5">Piątek</option>
+            <option value="6">Sobota</option>
+            <option value="7">Niedziela</option>
+          </select>
+        </label>
+
+        <div class="time-row">
+          <label class="form-field">
+            <span>Od</span>
+            <input id="eventStart" name="start" type="time" step="300" required />
+          </label>
+          <label class="form-field">
+            <span>Do</span>
+            <input id="eventEnd" name="end" type="time" step="300" required />
+          </label>
+        </div>
+        <small class="field-error time-error" id="timeError"></small>
+        <div class="conflict-note" id="conflictNote" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 4.6 2.7 18a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 4.6a2 2 0 0 0-3.4 0Z"/></svg>
+          <span>Ten termin nakłada się na inne wydarzenie.</span>
+        </div>
+
+        <label class="form-field">
+          <span>Miejsce <small>(opcjonalnie)</small></span>
+          <input id="eventPlace" name="place" type="text" maxlength="80" placeholder="np. sala 12 lub online" />
+        </label>
+
+        <label class="form-field">
+          <span>Notatka <small>(opcjonalnie)</small></span>
+          <textarea id="eventNote" name="note" rows="3" maxlength="240" placeholder="Co warto pamiętać?"></textarea>
+        </label>
+
+        <div class="sheet-actions sheet-actions--edit" id="editActions" hidden>
+          <button class="danger-button" id="deleteEventButton" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v5M14 11v5"/></svg>
+            Usuń
+          </button>
+        </div>
+
+        <div class="sheet-actions">
+          <button class="ghost-button" id="cancelEventButton" type="button">Anuluj</button>
+          <button class="primary-button" type="submit">Zapisz wydarzenie</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="sheet-dialog detail-dialog" id="eventDetailsDialog">
+      <div class="sheet detail-sheet">
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <div class="detail-accent" id="detailAccent"></div>
+        <div class="sheet-header">
+          <div>
+            <p class="eyebrow" id="detailCategory">ZAJĘCIA DYDAKTYCZNE</p>
+            <h2 id="detailTitle">4a</h2>
+          </div>
+          <button class="icon-button" id="closeDetailsDialog" type="button" aria-label="Zamknij">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+          </button>
+        </div>
+        <div class="detail-info" id="detailInfo"></div>
+        <div class="detail-actions">
+          <button class="secondary-action" id="editFromDetailsButton" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 20 4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10L4 20ZM13.5 7.5l3 3"/></svg>
+            Edytuj we wszystkich tygodniach
+          </button>
+          <button class="secondary-action secondary-action--white" id="editOccurrenceButton" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v3M17 3v3M4 9h16M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"/><path d="m10 16 4-4M12 12h2v2"/></svg>
+            Zmień tylko w tym dniu
+          </button>
+          <button class="danger-outline" id="cancelOccurrenceButton" type="button">Odwołaj tylko w tym dniu</button>
+          <button class="secondary-action" id="restoreOccurrenceButton" type="button" hidden>Przywróć to wystąpienie</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog class="sheet-dialog compact-dialog" id="syncCodeDialog">
+      <form class="sheet" id="syncCodeForm" novalidate>
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <div class="sheet-header">
+          <div>
+            <p class="eyebrow">BEZPIECZNA SYNCHRONIZACJA</p>
+            <h2>Kod tego urządzenia</h2>
+          </div>
+          <button class="icon-button" id="closeSyncCodeDialog" type="button" aria-label="Zamknij">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+          </button>
+        </div>
+
+        <p class="sheet-intro">Wpisz ten sam kod raz na telefonie i raz na komputerze. Aplikacja zapamięta go tylko w tej przeglądarce.</p>
+
+        <label class="form-field">
+          <span>Kod synchronizacji</span>
+          <input
+            id="syncCodeInput"
+            name="syncCode"
+            type="password"
+            minlength="16"
+            maxlength="128"
+            pattern="[A-Za-z0-9_-]{16,128}"
+            autocomplete="off"
+            autocapitalize="none"
+            spellcheck="false"
+            placeholder="Wklej otrzymany kod"
+            required
+          />
+          <small class="field-error" id="syncCodeError"></small>
+        </label>
+
+        <div class="privacy-note">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          <span>Kod nie jest zapisywany w planie ani w bazie D1. Serwer porównuje wyłącznie jego skrót.</span>
+        </div>
+
+        <button class="remove-code-button" id="clearSyncCodeButton" type="button" hidden>Usuń kod z tego urządzenia</button>
+
+        <div class="sheet-actions">
+          <button class="ghost-button" id="cancelSyncCodeButton" type="button">Anuluj</button>
+          <button class="primary-button" type="submit">Zapisz i połącz</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

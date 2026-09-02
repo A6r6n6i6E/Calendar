@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "moj-plan",
+  "main": "dist/server/index.js",
+  "compatibility_date": "2026-09-02",
+  "assets": {
+    "directory": "dist/client",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "moj-plan-db",
+      "database_id": "WKLEJ_TUTAJ_ID_BAZY_D1",
+      "migrations_dir": "drizzle"
+    }
+  ]
+}

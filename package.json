@@ -1,0 +1,12 @@
+{
+  "name": "moj-plan",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "generate:sync-code": "node scripts/generate-sync-code.mjs",
+    "start": "node server.mjs",
+    "test": "node --test"
+  }
+}
