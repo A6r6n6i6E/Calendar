@@ -13,7 +13,7 @@ import {
   toDateKey,
   weekdayNumber,
 } from "./utils.js";
-import { CATEGORY_CONFIG, INITIAL_BASE_EVENTS, WEEKDAY_NAMES } from "./data.js";
+import { CATEGORY_CONFIG, INITIAL_BASE_EVENTS, TIME_SLOTS, WEEKDAY_NAMES } from "./data.js";
 
 const STORAGE_KEY = "moj-plan-v1";
 const FIT_PREFERENCE_KEY = "moj-plan-fit-table";
@@ -125,8 +125,6 @@ const elements = {
   fitTableLabel: document.querySelector("#fitTableLabel"),
   timetableScroll: document.querySelector("#timetableScroll"),
   timetableGrid: document.querySelector("#timetableGrid"),
-  outsideEventsSection: document.querySelector("#outsideEventsSection"),
-  outsideEventsList: document.querySelector("#outsideEventsList"),
   baseList: document.querySelector("#baseList"),
   addButton: document.querySelector("#addButton"),
   addBaseButton: document.querySelector("#addBaseButton"),
@@ -369,7 +367,8 @@ function addEventAtTimelinePoint(date, range, column, clientY) {
 
 function createTimelineDay(date, events, conflictIds, range) {
   const column = document.createElement("div");
-  column.className = `timeline-day${isSameDay(date, new Date()) ? " is-today-column" : ""}`;
+  const isWeekend = weekdayNumber(date) > 5;
+  column.className = `timeline-day${isSameDay(date, new Date()) ? " is-today-column" : ""}${isWeekend ? " is-weekend-column" : ""}`;
   column.setAttribute("role", "gridcell");
   column.setAttribute("tabindex", "0");
   column.setAttribute("aria-label", `${WEEKDAY_NAMES[weekdayNumber(date)]}. Dotknij wybraną godzinę, aby dodać wydarzenie.`);
@@ -410,24 +409,43 @@ function axisTime(minutes) {
   return minutesToTime(minutes);
 }
 
-function createTimeRail(range) {
+function createLessonRail(range, kind) {
   const rail = document.createElement("div");
-  rail.className = "timeline-rail";
+  rail.className = kind === "number" ? "lesson-number-rail" : "timeline-rail";
   rail.setAttribute("role", "rowheader");
+  rail.setAttribute("aria-label", kind === "number" ? "Numery lekcji" : "Godziny lekcji");
   rail.style.height = `${(range.end - range.start) * MINUTE_HEIGHT}px`;
-  for (let minute = range.start; minute <= range.end; minute += 60) {
-    const label = document.createElement("span");
-    label.className = `timeline-hour${minute === range.start ? " is-first" : ""}${minute === range.end ? " is-last" : ""}`;
-    label.style.top = `${(minute - range.start) * MINUTE_HEIGHT}px`;
-    label.textContent = axisTime(minute);
-    rail.append(label);
+
+  if (kind === "time") {
+    for (let minute = range.start; minute <= range.end; minute += 60) {
+      const label = document.createElement("span");
+      label.className = `timeline-hour${minute === range.start ? " is-first" : ""}${minute === range.end ? " is-last" : ""}`;
+      label.style.top = `${(minute - range.start) * MINUTE_HEIGHT}px`;
+      label.textContent = axisTime(minute);
+      rail.append(label);
+    }
   }
+
+  TIME_SLOTS.forEach((slot) => {
+    const start = timeToMinutes(slot.start);
+    const end = timeToMinutes(slot.end);
+    if (end <= range.start || start >= range.end) return;
+    const visibleStart = Math.max(start, range.start);
+    const visibleEnd = Math.min(end, range.end);
+    const marker = document.createElement("span");
+    marker.className = `lesson-slot lesson-slot--${kind}`;
+    marker.style.top = `${(visibleStart - range.start) * MINUTE_HEIGHT}px`;
+    marker.style.height = `${(visibleEnd - visibleStart) * MINUTE_HEIGHT}px`;
+    marker.textContent = kind === "number" ? String(slot.number) : `${slot.start}–${slot.end}`;
+    marker.setAttribute("aria-label", `Lekcja ${slot.number}, ${slot.start}–${slot.end}`);
+    rail.append(marker);
+  });
   return rail;
 }
 
 function renderTimetable() {
   const weekStart = startOfWeek(selectedDate);
-  const weekdays = Array.from({ length: 5 }, (_, index) => addDays(weekStart, index));
+  const weekdays = Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
   const dayEvents = new Map();
   const dayConflicts = new Map();
 
@@ -441,56 +459,36 @@ function renderTimetable() {
   const range = getTimelineRange([...dayEvents.values()].flat());
 
   elements.timetableGrid.innerHTML = "";
+  const numberHeader = document.createElement("div");
+  numberHeader.className = "table-header table-header--number";
+  numberHeader.setAttribute("role", "columnheader");
+  numberHeader.textContent = "LP";
+  elements.timetableGrid.append(numberHeader);
+
   const timeHeader = document.createElement("div");
   timeHeader.className = "table-header table-header--time";
   timeHeader.setAttribute("role", "columnheader");
-  timeHeader.textContent = "Godzina";
+  timeHeader.textContent = "Godziny";
   elements.timetableGrid.append(timeHeader);
 
-  weekdays.forEach((date, index) => {
+  weekdays.forEach((date) => {
+    const weekday = weekdayNumber(date);
     const header = document.createElement("div");
-    header.className = `table-header table-header--day${isSameDay(date, new Date()) ? " is-today" : ""}`;
+    header.className = `table-header table-header--day${isSameDay(date, new Date()) ? " is-today" : ""}${weekday > 5 ? " is-weekend" : ""}`;
     header.setAttribute("role", "columnheader");
-    header.innerHTML = `<strong>${WEEKDAY_NAMES[index + 1]}</strong><span>${date.getDate()} ${new Intl.DateTimeFormat("pl-PL", { month: "short" }).format(date).replace(".", "")}</span>`;
+    header.innerHTML = `<strong>${WEEKDAY_NAMES[weekday]}</strong><span>${date.getDate()} ${new Intl.DateTimeFormat("pl-PL", { month: "short" }).format(date).replace(".", "")}</span>`;
     elements.timetableGrid.append(header);
   });
 
-  elements.timetableGrid.append(createTimeRail(range));
+  elements.timetableGrid.append(createLessonRail(range, "number"));
+  elements.timetableGrid.append(createLessonRail(range, "time"));
   weekdays.forEach((date, index) => {
     const key = toDateKey(date);
     const day = createTimelineDay(date, dayEvents.get(key), dayConflicts.get(key), range);
-    day.style.gridColumn = String(index + 2);
+    day.style.gridColumn = String(index + 3);
     elements.timetableGrid.append(day);
   });
   updateTimetableFit();
-}
-
-function renderOutsideEvents() {
-  const weekStart = startOfWeek(selectedDate);
-  const groups = [];
-  for (let offset = 0; offset < 7; offset += 1) {
-    const date = addDays(weekStart, offset);
-    const events = getEventsForDate(date, true).filter(() => offset > 4);
-    if (events.length) groups.push({ date, events });
-  }
-
-  elements.outsideEventsSection.hidden = groups.length === 0;
-  elements.outsideEventsList.innerHTML = "";
-  groups.forEach(({ date, events }) => {
-    const group = document.createElement("section");
-    group.className = "outside-day";
-    const heading = document.createElement("h3");
-    heading.textContent = new Intl.DateTimeFormat("pl-PL", { weekday: "long", day: "numeric", month: "long" })
-      .format(date)
-      .replace(/^./, (letter) => letter.toUpperCase());
-    group.append(heading);
-    const list = document.createElement("div");
-    list.className = "events-list";
-    const conflicts = getConflictIds(events);
-    events.forEach((event) => list.append(renderEventCard(event, date, conflicts)));
-    group.append(list);
-    elements.outsideEventsList.append(group);
-  });
 }
 
 function updateTimetableFit() {
@@ -504,7 +502,7 @@ function updateTimetableFit() {
     grid.style.transform = "";
     scroll.style.height = "";
     if (!fitTimetable) return;
-    const scale = Math.min(1, Math.max(0.35, (scroll.clientWidth - 2) / grid.scrollWidth));
+    const scale = Math.min(1, Math.max(0.27, (scroll.clientWidth - 2) / grid.scrollWidth));
     grid.style.transform = `scale(${scale})`;
     scroll.style.height = `${Math.ceil(grid.offsetHeight * scale + 2)}px`;
   });
@@ -519,7 +517,6 @@ function toggleTimetableFit() {
 function renderPlan() {
   renderWeek();
   renderTimetable();
-  renderOutsideEvents();
 
   const weekStart = startOfWeek(selectedDate);
   const activeEvents = Array.from({ length: 7 }, (_, offset) => getEventsForDate(addDays(weekStart, offset), false)).flat();
