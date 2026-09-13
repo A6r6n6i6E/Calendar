@@ -413,7 +413,7 @@ function createLessonRail(range, kind) {
   const rail = document.createElement("div");
   rail.className = kind === "number" ? "lesson-number-rail" : "timeline-rail";
   rail.setAttribute("role", "rowheader");
-  rail.setAttribute("aria-label", kind === "number" ? "Numery lekcji" : "Godziny lekcji");
+  rail.setAttribute("aria-label", kind === "number" ? "Numery lekcji" : "Oś godzin");
   rail.style.height = `${(range.end - range.start) * MINUTE_HEIGHT}px`;
 
   if (kind === "time") {
@@ -424,6 +424,7 @@ function createLessonRail(range, kind) {
       label.textContent = axisTime(minute);
       rail.append(label);
     }
+    return rail;
   }
 
   TIME_SLOTS.forEach((slot) => {
@@ -433,10 +434,10 @@ function createLessonRail(range, kind) {
     const visibleStart = Math.max(start, range.start);
     const visibleEnd = Math.min(end, range.end);
     const marker = document.createElement("span");
-    marker.className = `lesson-slot lesson-slot--${kind}`;
+    marker.className = "lesson-slot lesson-slot--number";
     marker.style.top = `${(visibleStart - range.start) * MINUTE_HEIGHT}px`;
     marker.style.height = `${(visibleEnd - visibleStart) * MINUTE_HEIGHT}px`;
-    marker.textContent = kind === "number" ? String(slot.number) : `${slot.start}–${slot.end}`;
+    marker.textContent = String(slot.number);
     marker.setAttribute("aria-label", `Lekcja ${slot.number}, ${slot.start}–${slot.end}`);
     rail.append(marker);
   });
@@ -468,7 +469,7 @@ function renderTimetable() {
   const timeHeader = document.createElement("div");
   timeHeader.className = "table-header table-header--time";
   timeHeader.setAttribute("role", "columnheader");
-  timeHeader.textContent = "Godziny";
+  timeHeader.textContent = "Godz.";
   elements.timetableGrid.append(timeHeader);
 
   weekdays.forEach((date) => {

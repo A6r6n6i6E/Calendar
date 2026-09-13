@@ -394,10 +394,10 @@ svg {
 
 .timetable-grid {
   display: grid;
-  grid-template-columns: 38px 78px repeat(7, minmax(128px, 1fr));
+  grid-template-columns: 38px 64px repeat(7, minmax(128px, 1fr));
   grid-template-rows: 58px auto;
   gap: 1px;
-  min-width: 1020px;
+  min-width: 1006px;
   background: #d8dfdc;
   transform-origin: top left;
   will-change: transform;
@@ -479,10 +479,10 @@ svg {
 
 .timeline-hour {
   position: absolute;
-  right: 5px;
+  right: 8px;
   z-index: 0;
-  color: #87948f;
-  font-size: 8px;
+  color: #55645f;
+  font-size: 10px;
   font-weight: 730;
   transform: translateY(-50%);
 }
@@ -513,13 +513,6 @@ svg {
 
 .lesson-slot--number {
   font-size: 11px;
-}
-
-.lesson-slot--time {
-  padding: 0 3px;
-  font-size: 9px;
-  letter-spacing: -0.025em;
-  white-space: nowrap;
 }
 
 .timeline-day {
