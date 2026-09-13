@@ -394,7 +394,7 @@ svg {
 
 .timetable-grid {
   display: grid;
-  grid-template-columns: 38px 64px repeat(7, minmax(128px, 1fr));
+  grid-template-columns: 38px 52px repeat(7, minmax(128px, 1fr));
   grid-template-rows: 58px auto;
   gap: 1px;
   min-width: 1006px;
