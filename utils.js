@@ -70,6 +70,29 @@ export function getTimelineRange(events, defaultStart = 8 * 60, defaultEnd = 17 
   return { start, end: Math.max(start + 60, end) };
 }
 
+export function visualTimelineOffset(minutes, rangeStart, minuteHeight, expansions = []) {
+  const expansionProgress = (value, expansion) => {
+    if (expansion.end <= expansion.start) return 0;
+    return Math.max(0, Math.min(1, (value - expansion.start) / (expansion.end - expansion.start)));
+  };
+  return (minutes - rangeStart) * minuteHeight + expansions.reduce((total, expansion) => (
+    total + (expansionProgress(minutes, expansion) - expansionProgress(rangeStart, expansion)) * expansion.extra
+  ), 0);
+}
+
+export function minuteAtVisualTimelineOffset(offset, rangeStart, rangeEnd, minuteHeight, expansions = []) {
+  const totalHeight = visualTimelineOffset(rangeEnd, rangeStart, minuteHeight, expansions);
+  const target = Math.max(0, Math.min(totalHeight, offset));
+  let low = rangeStart;
+  let high = rangeEnd;
+  for (let iteration = 0; iteration < 32; iteration += 1) {
+    const middle = (low + high) / 2;
+    if (visualTimelineOffset(middle, rangeStart, minuteHeight, expansions) < target) low = middle;
+    else high = middle;
+  }
+  return (low + high) / 2;
+}
+
 export function layoutEventLanes(events) {
   const sorted = [...events]
     .map((event) => ({

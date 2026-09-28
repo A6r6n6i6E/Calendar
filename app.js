@@ -7,10 +7,12 @@ import {
   getTimelineRange,
   isSameDay,
   layoutEventLanes,
+  minuteAtVisualTimelineOffset,
   minutesToTime,
   startOfWeek,
   timeToMinutes,
   toDateKey,
+  visualTimelineOffset,
   weekdayNumber,
 } from "./utils.js";
 import { CATEGORY_CONFIG, INITIAL_BASE_EVENTS, TIME_SLOTS, WEEKDAY_NAMES } from "./data.js";
@@ -20,6 +22,21 @@ const FIT_PREFERENCE_KEY = "moj-plan-fit-table";
 const SYNC_CODE_KEY = "moj-plan-sync-code";
 const MINUTE_HEIGHT = 1.08;
 const SYNC_INTERVAL = 30_000;
+const VISUAL_BREAK_EXPANSIONS = [
+  {
+    start: timeToMinutes(TIME_SLOTS[3].end),
+    end: timeToMinutes(TIME_SLOTS[4].start),
+    extra: 16,
+  },
+];
+
+function timelineY(minutes, range) {
+  return visualTimelineOffset(minutes, range.start, MINUTE_HEIGHT, VISUAL_BREAK_EXPANSIONS);
+}
+
+function timelineHeight(range) {
+  return timelineY(range.end, range);
+}
 
 function freshState() {
   return {
@@ -329,8 +346,10 @@ function createTimelineEvent(event, date, conflictIds, range) {
   button.className = `grid-event${event.cancelled ? " is-cancelled" : ""}${conflictIds.has(`${event.source}:${event.id}`) ? " has-conflict" : ""}${duration < 30 ? " is-short" : ""}`;
   button.style.setProperty("--event-color", category.color);
   button.style.setProperty("--event-soft", category.soft);
-  button.style.top = `${(timeToMinutes(event.start) - range.start) * MINUTE_HEIGHT}px`;
-  button.style.height = `${Math.max(18, duration * MINUTE_HEIGHT)}px`;
+  const startY = timelineY(timeToMinutes(event.start), range);
+  const endY = timelineY(timeToMinutes(event.end), range);
+  button.style.top = `${startY}px`;
+  button.style.height = `${Math.max(18, endY - startY)}px`;
   button.style.left = `calc(${(event.lane / event.laneCount) * 100}% + 3px)`;
   button.style.width = `calc(${100 / event.laneCount}% - 6px)`;
   button.setAttribute("aria-label", `${event.title}, ${event.start}–${event.end}${event.cancelled ? ", odwołane" : ", kliknij, aby edytować"}`);
@@ -354,7 +373,13 @@ function suggestedEndFromStart(startMinutes) {
 function addEventAtTimelinePoint(date, range, column, clientY) {
   const bounds = column.getBoundingClientRect();
   const ratio = Math.max(0, Math.min(1, (clientY - bounds.top) / bounds.height));
-  const rawMinutes = range.start + ratio * (range.end - range.start);
+  const rawMinutes = minuteAtVisualTimelineOffset(
+    ratio * timelineHeight(range),
+    range.start,
+    range.end,
+    MINUTE_HEIGHT,
+    VISUAL_BREAK_EXPANSIONS,
+  );
   const startMinutes = Math.min(range.end - 5, Math.round(rawMinutes / 5) * 5);
   selectedDate = date;
   openEventForm({
@@ -372,8 +397,16 @@ function createTimelineDay(date, events, conflictIds, range) {
   column.setAttribute("role", "gridcell");
   column.setAttribute("tabindex", "0");
   column.setAttribute("aria-label", `${WEEKDAY_NAMES[weekdayNumber(date)]}. Dotknij wybraną godzinę, aby dodać wydarzenie.`);
-  column.style.height = `${(range.end - range.start) * MINUTE_HEIGHT}px`;
-  column.style.setProperty("--quarter-height", `${15 * MINUTE_HEIGHT}px`);
+  column.style.height = `${timelineHeight(range)}px`;
+
+  const firstGridMinute = Math.ceil(range.start / 15) * 15;
+  for (let minute = firstGridMinute; minute <= range.end; minute += 15) {
+    const line = document.createElement("span");
+    line.className = `timeline-grid-line${minute % 60 === 0 ? " is-hour" : ""}`;
+    line.style.top = `${timelineY(minute, range)}px`;
+    line.setAttribute("aria-hidden", "true");
+    column.append(line);
+  }
 
   layoutEventLanes(events).forEach((event) => {
     column.append(createTimelineEvent(event, date, conflictIds, range));
@@ -384,7 +417,7 @@ function createTimelineDay(date, events, conflictIds, range) {
     if (now >= range.start && now <= range.end) {
       const line = document.createElement("span");
       line.className = "now-line";
-      line.style.top = `${(now - range.start) * MINUTE_HEIGHT}px`;
+      line.style.top = `${timelineY(now, range)}px`;
       line.setAttribute("aria-hidden", "true");
       column.append(line);
     }
@@ -414,13 +447,13 @@ function createLessonRail(range, kind) {
   rail.className = kind === "number" ? "lesson-number-rail" : "timeline-rail";
   rail.setAttribute("role", "rowheader");
   rail.setAttribute("aria-label", kind === "number" ? "Numery lekcji" : "Oś godzin");
-  rail.style.height = `${(range.end - range.start) * MINUTE_HEIGHT}px`;
+  rail.style.height = `${timelineHeight(range)}px`;
 
   if (kind === "time") {
     for (let minute = range.start; minute <= range.end; minute += 60) {
       const label = document.createElement("span");
       label.className = `timeline-hour${minute === range.start ? " is-first" : ""}${minute === range.end ? " is-last" : ""}`;
-      label.style.top = `${(minute - range.start) * MINUTE_HEIGHT}px`;
+      label.style.top = `${timelineY(minute, range)}px`;
       label.textContent = axisTime(minute);
       rail.append(label);
     }
@@ -435,8 +468,8 @@ function createLessonRail(range, kind) {
     const visibleEnd = Math.min(end, range.end);
     const marker = document.createElement("span");
     marker.className = "lesson-slot lesson-slot--number";
-    marker.style.top = `${(visibleStart - range.start) * MINUTE_HEIGHT}px`;
-    marker.style.height = `${(visibleEnd - visibleStart) * MINUTE_HEIGHT}px`;
+    marker.style.top = `${timelineY(visibleStart, range)}px`;
+    marker.style.height = `${timelineY(visibleEnd, range) - timelineY(visibleStart, range)}px`;
     marker.textContent = String(slot.number);
     marker.setAttribute("aria-label", `Lekcja ${slot.number}, ${slot.start}–${slot.end}`);
     rail.append(marker);
