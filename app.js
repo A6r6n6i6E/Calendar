@@ -26,7 +26,7 @@ const VISUAL_BREAK_EXPANSIONS = [
   {
     start: timeToMinutes(TIME_SLOTS[3].end),
     end: timeToMinutes(TIME_SLOTS[4].start),
-    extra: 15,
+    extra: 14,
   },
 ];
 
