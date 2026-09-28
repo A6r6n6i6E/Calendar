@@ -22,13 +22,24 @@ const FIT_PREFERENCE_KEY = "moj-plan-fit-table";
 const SYNC_CODE_KEY = "moj-plan-sync-code";
 const MINUTE_HEIGHT = 1.08;
 const SYNC_INTERVAL = 30_000;
-const VISUAL_BREAK_EXPANSIONS = [
-  {
-    start: timeToMinutes(TIME_SLOTS[3].end),
-    end: timeToMinutes(TIME_SLOTS[4].start),
-    extra: 13,
-  },
-];
+const DUTY_BREAK_HEIGHT = 14;
+const DUTY_BREAK_AFTER_LESSONS = [4, 5, 6];
+
+const VISUAL_BREAK_EXPANSIONS = DUTY_BREAK_AFTER_LESSONS.map((lessonNumber) => {
+  const lesson = TIME_SLOTS[lessonNumber - 1];
+  const nextLesson = TIME_SLOTS[lessonNumber];
+  const start = timeToMinutes(lesson.end);
+  const end = timeToMinutes(nextLesson.start);
+
+  return {
+    start,
+    end,
+    extra: Math.max(
+      0,
+      DUTY_BREAK_HEIGHT - (end - start) * MINUTE_HEIGHT,
+    ),
+  };
+});
 
 function timelineY(minutes, range) {
   return visualTimelineOffset(minutes, range.start, MINUTE_HEIGHT, VISUAL_BREAK_EXPANSIONS);
