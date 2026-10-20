@@ -228,7 +228,7 @@ const SUBJECT_COLORS = {
   },
   "fizyka": {
     color: "#702c2c",
-    soft: "#fcc5c5",
+    soft: "#fcd2d2",
   },
   "matematyka": {
     color: "#9b874b",
