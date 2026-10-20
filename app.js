@@ -215,8 +215,11 @@ function makeId(prefix) {
 const CLASS_COLORS = {
   "4a": { color: "#397ca4", soft: "#e6f1f7" },
   "7":  { color: "#9b874b", soft: "#f1eddc" },
-  "Fizyka":  { color: "#8b5aa7", soft: "#f3ebf7" },
-  "Matematyka":  { color: "#2f806f", soft: "#e4f2ee" },
+};
+
+const SUBJECT_COLORS = {
+  "fizyka":     { color: "#8b5aa7", soft: "#f3ebf7" },
+  "matematyka": { color: "#2f806f", soft: "#e4f2ee" },
 };
 
 function getCategory(event) {
@@ -227,15 +230,21 @@ function getCategory(event) {
     return category;
   }
 
-  const className = event.title
-    .trim()
-    .match(/^(\d+[a-z]?)/i)?.[1]
-    ?.toLowerCase();
+  const title = event.title.trim().toLowerCase();
 
-  const classColors = CLASS_COLORS[className];
+  const className =
+    title.match(/^(\d+[a-z]?)/)?.[1];
 
-  return classColors
-    ? { ...category, ...classColors }
+  const subjectName =
+    Object.keys(SUBJECT_COLORS)
+      .find((subject) => title.includes(subject));
+
+  // Najpierw kolor klasy, a jeśli go nie znaleziono — kolor przedmiotu.
+const eventColors =
+  CLASS_COLORS[className] || SUBJECT_COLORS[subjectName];
+
+  return eventColors
+    ? { ...category, ...eventColors }
     : category;
 }
 
