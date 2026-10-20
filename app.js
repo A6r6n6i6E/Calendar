@@ -218,8 +218,22 @@ const CLASS_COLORS = {
 };
 
 const SUBJECT_COLORS = {
-  "LO fizyka":     { color: "#322bc2", soft: "#757fc7" },
-  "LO matematyka": { color: "#2f806f", soft: "#e4f2ee" },
+  "lo fizyka": {
+    color: "#322bc2",
+    soft: "#e8e7fb",
+  },
+  "lo matematyka": {
+    color: "#2f806f",
+    soft: "#e4f2ee",
+  },
+  "fizyka": {
+    color: "#8b5aa7",
+    soft: "#f3ebf7",
+  },
+  "matematyka": {
+    color: "#9b874b",
+    soft: "#f1eddc",
+  },
 };
 
 function getCategory(event) {
@@ -235,9 +249,9 @@ function getCategory(event) {
   const className =
     title.match(/^(\d+[a-z]?)/)?.[1];
 
-  const subjectName =
-    Object.keys(SUBJECT_COLORS)
-      .find((subject) => title.includes(subject));
+const subjectName = Object.keys(SUBJECT_COLORS)
+  .sort((first, second) => second.length - first.length)
+  .find((subject) => title.includes(subject));
 
   // Najpierw kolor klasy, a jeśli go nie znaleziono — kolor przedmiotu.
 const eventColors =
