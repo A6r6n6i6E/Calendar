@@ -212,9 +212,31 @@ function makeId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+const CLASS_COLORS = {
+  "4a": { color: "#397ca4", soft: "#e6f1f7" },
+  "7":  { color: "#9b874b", soft: "#f1eddc" },
+  "Fizyka":  { color: "#8b5aa7", soft: "#f3ebf7" },
+  "Matematyka":  { color: "#2f806f", soft: "#e4f2ee" },
+};
+
 function getCategory(event) {
-  if (event.accent === "class7") return { ...CATEGORY_CONFIG.dydaktyczne, color: "#9b874b", soft: "#f1eddc" };
-  return CATEGORY_CONFIG[event.category] || CATEGORY_CONFIG.inne;
+  const category =
+    CATEGORY_CONFIG[event.category] || CATEGORY_CONFIG.inne;
+
+  if (event.category !== "dydaktyczne") {
+    return category;
+  }
+
+  const className = event.title
+    .trim()
+    .match(/^(\d+[a-z]?)/i)?.[1]
+    ?.toLowerCase();
+
+  const classColors = CLASS_COLORS[className];
+
+  return classColors
+    ? { ...category, ...classColors }
+    : category;
 }
 
 function cancellationKey(eventId, dateKey) {
