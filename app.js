@@ -218,8 +218,8 @@ const CLASS_COLORS = {
 };
 
 const SUBJECT_COLORS = {
-  "fizyka":     { color: "#8b5aa7", soft: "#f3ebf7" },
-  "matematyka": { color: "#2f806f", soft: "#e4f2ee" },
+  "LO fizyka":     { color: "#322bc2", soft: "#757fc7" },
+  "LO matematyka": { color: "#2f806f", soft: "#e4f2ee" },
 };
 
 function getCategory(event) {
